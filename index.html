@@ -14,7 +14,6 @@
     :root{
       --bg:#0b0b0c; --card:#151517; --muted:#91919a; --line:#27272b;
       --text:#f8f8fa; --accent:#d8ff4f; --danger:#ff5e6c; --ok:#77e58e;
-      --radius:22px;
     }
     *{box-sizing:border-box}
     html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",Arial,sans-serif}
@@ -42,7 +41,7 @@
     .mini{font-size:12px;color:var(--muted);white-space:nowrap}
     .stepper{display:flex;gap:7px;align-items:center}
     .stepper button{width:34px;height:34px;border:1px solid var(--line);border-radius:10px;background:#0f0f11;color:var(--text);font-size:18px}
-    .stepper span{min-width:58px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px}
+    .stepper span{min-width:66px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px}
     .complete{margin-top:14px;width:100%;border:0;border-radius:18px;padding:16px;font-size:16px;font-weight:900;background:#252529;color:#67676d}
     .complete.ready{background:var(--accent);color:#111}
     .calendar{display:grid;grid-template-columns:repeat(10,1fr);gap:7px}
@@ -54,14 +53,13 @@
     .stat{background:var(--card);border:1px solid var(--line);padding:14px;border-radius:18px;text-align:center}
     .stat b{display:block;font-size:24px}
     .stat span{font-size:11px;color:var(--muted)}
-    .warning{font-size:12px;color:var(--muted);line-height:1.45;background:#121214;border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:18px}
+    .info{font-size:12px;color:var(--muted);line-height:1.5;background:#121214;border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:18px}
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.68);display:none;align-items:flex-end;justify-content:center;padding:16px;z-index:20}
     .modal.open{display:flex}
     .sheet{width:min(560px,100%);background:#171719;border:1px solid var(--line);border-radius:26px;padding:20px;max-height:88vh;overflow:auto}
     .sheet h2{margin:0 0 14px}
     label{display:block;font-size:12px;color:var(--muted);margin:14px 0 6px}
     input{width:100%;padding:13px 14px;border-radius:13px;border:1px solid var(--line);background:#0f0f11;color:var(--text);font-size:16px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .actions{display:flex;gap:10px;margin-top:18px}
     .actions button{flex:1;padding:14px;border-radius:14px;border:1px solid var(--line);font-weight:800}
     .save{background:var(--accent);color:#111}
@@ -94,11 +92,13 @@
       <div class="hero-foot"><span id="progressTxt">0% completato</span><span>75 giorni</span></div>
     </div>
 
-    <div class="section-title">Oggi</div>
+    <div class="section-title">Obiettivi di oggi</div>
     <div class="tasks" id="tasks"></div>
     <button id="completeBtn" class="complete" onclick="finishDay()">Completa la giornata</button>
-    <div class="warning">
-      75 Hard è una challenge intensa. Due allenamenti al giorno e un target fisso di acqua possono non essere adatti a tutti: interrompi o modifica la challenge se avverti sintomi o hai indicazioni mediche diverse.
+
+    <div class="info">
+      La tua versione personalizzata: 8 ore di sonno, deficit calorico, 2 L d'acqua,
+      due workout da 45 minuti e 10 pagine di lettura.
     </div>
   </section>
 
@@ -115,10 +115,14 @@
       <div class="stat"><b id="completed">0</b><span>giorni completati</span></div>
       <div class="stat"><b id="pct">0%</b><span>challenge</span></div>
     </div>
-    <div class="section-title">Regole salvate nell'app</div>
-    <div class="warning">
-      Dieta rispettata • 2 workout da almeno 45 minuti • almeno 1 workout outdoor • acqua • 10 pagine • progress photo.
-      Puoi personalizzare il target acqua nelle impostazioni.
+    <div class="section-title">I tuoi obiettivi</div>
+    <div class="info">
+      💤 Sonno: 8 h<br>
+      🔥 Deficit calorico<br>
+      💧 Acqua: 2 L<br>
+      🏋🏻 Workout 1: 45 min<br>
+      🏋🏻 Workout 2: 45 min<br>
+      📖 Lettura: 10 pagine
     </div>
   </section>
 </div>
@@ -136,16 +140,6 @@
     <h2>Impostazioni</h2>
     <label>Data di inizio</label>
     <input type="date" id="startDateInput">
-    <div class="row">
-      <div>
-        <label>Target acqua (L)</label>
-        <input type="number" min="0.5" max="8" step="0.1" id="waterTargetInput">
-      </div>
-      <div>
-        <label>Pagine al giorno</label>
-        <input type="number" min="1" max="100" step="1" id="pagesTargetInput">
-      </div>
-    </div>
     <div class="actions">
       <button class="ghost" onclick="closeSettings()">Annulla</button>
       <button class="save" onclick="saveSettings()">Salva</button>
@@ -157,13 +151,15 @@
 </div>
 
 <script>
+const TARGETS = { sleep: 8, water: 2, pages: 10 };
+
 const TASKS = [
-  {id:'diet', title:'Dieta rispettata', sub:'Nessun cheat meal / alcol'},
-  {id:'workout1', title:'Workout 1', sub:'Almeno 45 minuti'},
-  {id:'workout2', title:'Workout outdoor', sub:'Almeno 45 minuti all’aperto'},
-  {id:'water', title:'Acqua', sub:'Target giornaliero', special:'water'},
-  {id:'reading', title:'Lettura', sub:'Libro non-fiction / self-development', special:'reading'},
-  {id:'photo', title:'Progress photo', sub:'Una foto al giorno'}
+  {id:'sleep', title:'Sonno', sub:'Obiettivo: 8 ore', special:'sleep'},
+  {id:'deficit', title:'Deficit calorico', sub:'Obiettivo giornaliero rispettato'},
+  {id:'water', title:'Acqua', sub:'Obiettivo: 2 litri', special:'water'},
+  {id:'workout1', title:'Workout 1', sub:'45 minuti'},
+  {id:'workout2', title:'Workout 2', sub:'45 minuti'},
+  {id:'reading', title:'Lettura', sub:'Obiettivo: 10 pagine', special:'reading'}
 ];
 
 function isoLocal(d=new Date()){
@@ -171,17 +167,16 @@ function isoLocal(d=new Date()){
   return z.toISOString().slice(0,10);
 }
 function load(){
-  const saved = JSON.parse(localStorage.getItem('hard75')||'{}');
+  const saved = JSON.parse(localStorage.getItem('hard75v2')||'{}');
   const today = isoLocal();
   return {
     startDate: saved.startDate || today,
-    waterTarget: saved.waterTarget || 3.8,
-    pagesTarget: saved.pagesTarget || 10,
     days: saved.days || {}
   };
 }
 let state = load();
-function save(){localStorage.setItem('hard75',JSON.stringify(state));}
+function save(){localStorage.setItem('hard75v2',JSON.stringify(state));}
+
 function dayIndex(){
   const a = new Date(state.startDate+'T12:00:00');
   const b = new Date(isoLocal()+'T12:00:00');
@@ -194,12 +189,16 @@ function dayKey(i=dayIndex()){
 }
 function getDay(i=dayIndex()){
   const k=dayKey(i);
-  if(!state.days[k]) state.days[k]={checks:{},water:0,pages:0,complete:false};
+  if(!state.days[k]) state.days[k]={checks:{},sleep:0,water:0,pages:0,complete:false};
   return state.days[k];
 }
 function allDone(d){
-  return !!d.checks.diet && !!d.checks.workout1 && !!d.checks.workout2 &&
-         d.water >= state.waterTarget && d.pages >= state.pagesTarget && !!d.checks.photo;
+  return d.sleep >= TARGETS.sleep &&
+         !!d.checks.deficit &&
+         d.water >= TARGETS.water &&
+         !!d.checks.workout1 &&
+         !!d.checks.workout2 &&
+         d.pages >= TARGETS.pages;
 }
 function setCheck(id){
   const d=getDay();
@@ -209,7 +208,8 @@ function setCheck(id){
 }
 function bump(type,delta){
   const d=getDay();
-  if(type==='water') d.water=Math.max(0, Math.round((d.water+delta)*10)/10);
+  if(type==='sleep') d.sleep=Math.max(0, Math.round((d.sleep+delta)*2)/2);
+  if(type==='water') d.water=Math.max(0, Math.round((d.water+delta)*100)/100);
   if(type==='reading') d.pages=Math.max(0, d.pages+delta);
   if(!allDone(d)) d.complete=false;
   save(); render();
@@ -217,25 +217,37 @@ function bump(type,delta){
 function finishDay(){
   const d=getDay();
   if(!allDone(d)) return;
-  d.complete=true; save(); render();
+  d.complete=true;
+  save(); render();
   if(navigator.vibrate) navigator.vibrate([60,40,90]);
 }
 function renderTasks(){
   const d=getDay();
   document.getElementById('tasks').innerHTML=TASKS.map(t=>{
-    let done = t.special==='water' ? d.water>=state.waterTarget :
-               t.special==='reading' ? d.pages>=state.pagesTarget :
+    let done = t.special==='sleep' ? d.sleep>=TARGETS.sleep :
+               t.special==='water' ? d.water>=TARGETS.water :
+               t.special==='reading' ? d.pages>=TARGETS.pages :
                !!d.checks[t.id];
+
     let right='';
-    if(t.special==='water'){
-      right=`<div class="stepper"><button onclick="bump('water',-0.25)">−</button><span>${d.water.toFixed(2)} / ${state.waterTarget} L</span><button onclick="bump('water',0.25)">+</button></div>`;
+    if(t.special==='sleep'){
+      right=`<div class="stepper"><button onclick="bump('sleep',-0.5)">−</button><span>${d.sleep.toFixed(1)} / 8 h</span><button onclick="bump('sleep',0.5)">+</button></div>`;
+    } else if(t.special==='water'){
+      right=`<div class="stepper"><button onclick="bump('water',-0.25)">−</button><span>${d.water.toFixed(2)} / 2 L</span><button onclick="bump('water',0.25)">+</button></div>`;
     } else if(t.special==='reading'){
-      right=`<div class="stepper"><button onclick="bump('reading',-1)">−</button><span>${d.pages} / ${state.pagesTarget}</span><button onclick="bump('reading',1)">+</button></div>`;
-    } else right='<div class="mini">tocca</div>';
+      right=`<div class="stepper"><button onclick="bump('reading',-1)">−</button><span>${d.pages} / 10</span><button onclick="bump('reading',1)">+</button></div>`;
+    } else {
+      right='<div class="mini">tocca</div>';
+    }
+
     const action = t.special ? '' : `onclick="setCheck('${t.id}')"`;
+
     return `<div class="task ${done?'done':''}" ${action}>
       <div class="check"></div>
-      <div><div class="task-title">${t.title}</div><div class="task-sub">${t.sub}</div></div>
+      <div>
+        <div class="task-title">${t.title}</div>
+        <div class="task-sub">${t.sub}</div>
+      </div>
       ${right}
     </div>`;
   }).join('');
@@ -253,24 +265,31 @@ function calcStreak(){
   let s=0;
   for(let i=dayIndex();i>=1;i--){
     const d=state.days[dayKey(i)];
-    if(d?.complete) s++; else if(i!==dayIndex()) break;
+    if(d?.complete) s++;
+    else if(i!==dayIndex()) break;
   }
   return s;
 }
 function render(){
   const i=dayIndex(), d=getDay();
   const date = new Date(dayKey(i)+'T12:00:00');
-  document.getElementById('dateLabel').textContent = date.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('dateLabel').textContent =
+    date.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
   document.getElementById('dayNum').textContent=`DAY ${i}`;
   document.getElementById('daysLeft').textContent=`${75-i} giorni alla fine`;
-  const pct=Math.round((i-1 + (d.complete?1:0))/75*100);
+
+  const completed=Object.values(state.days).filter(x=>x.complete).length;
+  const pct=Math.round(completed/75*100);
   document.getElementById('progressBar').style.width=pct+'%';
   document.getElementById('progressTxt').textContent=pct+'% completato';
-  renderTasks(); renderCalendar();
-  const completed=Object.values(state.days).filter(x=>x.complete).length;
+
+  renderTasks();
+  renderCalendar();
+
   document.getElementById('completed').textContent=completed;
   document.getElementById('streak').textContent=calcStreak();
-  document.getElementById('pct').textContent=Math.round(completed/75*100)+'%';
+  document.getElementById('pct').textContent=pct+'%';
+
   const btn=document.getElementById('completeBtn');
   btn.classList.toggle('ready',allDone(d));
   btn.textContent=d.complete?'Giornata completata ✓':'Completa la giornata';
@@ -281,23 +300,26 @@ function showView(v){
 }
 function openSettings(){
   document.getElementById('startDateInput').value=state.startDate;
-  document.getElementById('waterTargetInput').value=state.waterTarget;
-  document.getElementById('pagesTargetInput').value=state.pagesTarget;
   document.getElementById('settingsModal').classList.add('open');
 }
-function closeSettings(){document.getElementById('settingsModal').classList.remove('open');}
+function closeSettings(){
+  document.getElementById('settingsModal').classList.remove('open');
+}
 function saveSettings(){
   state.startDate=document.getElementById('startDateInput').value || state.startDate;
-  state.waterTarget=parseFloat(document.getElementById('waterTargetInput').value)||3.8;
-  state.pagesTarget=parseInt(document.getElementById('pagesTargetInput').value)||10;
   save(); closeSettings(); render();
 }
 function resetAll(){
   if(confirm('Vuoi davvero cancellare tutti i progressi e ripartire da zero?')){
-    localStorage.removeItem('hard75'); state=load(); closeSettings(); render();
+    localStorage.removeItem('hard75v2');
+    state=load();
+    closeSettings();
+    render();
   }
 }
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(()=>{}));}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(()=>{}));
+}
 render();
 </script>
 </body>
