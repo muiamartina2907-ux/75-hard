@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0e0e0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="75 HARD" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>75 HARD — My Challenge</title>
+  <style>
+    :root{
+      --bg:#0b0b0c; --card:#151517; --muted:#91919a; --line:#27272b;
+      --text:#f8f8fa; --accent:#d8ff4f; --danger:#ff5e6c; --ok:#77e58e;
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",Arial,sans-serif}
+    body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+    .app{max-width:560px;margin:auto;padding:18px 16px 110px}
+    .top{display:flex;align-items:center;justify-content:space-between;margin:8px 2px 18px}
+    .brand{font-size:13px;letter-spacing:.18em;font-weight:800;color:var(--muted)}
+    .settings{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:14px;padding:10px 12px;font-size:15px}
+    .hero{background:linear-gradient(160deg,#1a1a1d,#111113);border:1px solid var(--line);border-radius:28px;padding:22px;box-shadow:0 18px 45px rgba(0,0,0,.25)}
+    .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:700}
+    .dayline{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-top:4px}
+    .daynum{font-size:54px;line-height:.95;font-weight:900;letter-spacing:-.05em}
+    .daysleft{font-size:13px;color:var(--muted);text-align:right}
+    .bar{height:9px;background:#252528;border-radius:999px;overflow:hidden;margin-top:18px}
+    .bar>div{height:100%;background:var(--accent);width:0%;border-radius:inherit;transition:.3s}
+    .hero-foot{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px}
+    .section-title{font-size:18px;font-weight:800;margin:24px 2px 12px}
+    .tasks{display:grid;gap:10px}
+    .task{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);padding:14px;border-radius:20px}
+    .check{width:32px;height:32px;border-radius:10px;border:1.5px solid #43434a;background:#0e0e10;display:grid;place-items:center;font-weight:900;color:#0e0e10;cursor:pointer}
+    .task.done .check{background:var(--accent);border-color:var(--accent)}
+    .task.done .check::after{content:"✓"}
+    .task-title{font-weight:750;font-size:15px}
+    .task-sub{font-size:12px;color:var(--muted);margin-top:3px}
+    .mini{font-size:12px;color:var(--muted);white-space:nowrap}
+    .stepper{display:flex;gap:7px;align-items:center}
+    .stepper button{width:34px;height:34px;border:1px solid var(--line);border-radius:10px;background:#0f0f11;color:var(--text);font-size:18px}
+    .stepper span{min-width:58px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px}
+    .complete{margin-top:14px;width:100%;border:0;border-radius:18px;padding:16px;font-size:16px;font-weight:900;background:#252529;color:#67676d}
+    .complete.ready{background:var(--accent);color:#111}
+    .calendar{display:grid;grid-template-columns:repeat(10,1fr);gap:7px}
+    .dot{aspect-ratio:1;border-radius:9px;display:grid;place-items:center;font-size:11px;font-weight:800;background:#18181b;border:1px solid var(--line);color:#777780}
+    .dot.done{background:var(--ok);border-color:var(--ok);color:#102016}
+    .dot.today{outline:2px solid var(--accent);outline-offset:2px;color:var(--text)}
+    .dot.future{opacity:.35}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .stat{background:var(--card);border:1px solid var(--line);padding:14px;border-radius:18px;text-align:center}
+    .stat b{display:block;font-size:24px}
+    .stat span{font-size:11px;color:var(--muted)}
+    .warning{font-size:12px;color:var(--muted);line-height:1.45;background:#121214;border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:18px}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.68);display:none;align-items:flex-end;justify-content:center;padding:16px;z-index:20}
+    .modal.open{display:flex}
+    .sheet{width:min(560px,100%);background:#171719;border:1px solid var(--line);border-radius:26px;padding:20px;max-height:88vh;overflow:auto}
+    .sheet h2{margin:0 0 14px}
+    label{display:block;font-size:12px;color:var(--muted);margin:14px 0 6px}
+    input{width:100%;padding:13px 14px;border-radius:13px;border:1px solid var(--line);background:#0f0f11;color:var(--text);font-size:16px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .actions{display:flex;gap:10px;margin-top:18px}
+    .actions button{flex:1;padding:14px;border-radius:14px;border:1px solid var(--line);font-weight:800}
+    .save{background:var(--accent);color:#111}
+    .ghost{background:#111114;color:var(--text)}
+    .danger{background:#2a1114;color:#ff9da6}
+    .nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,11,.88);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));z-index:10}
+    .nav-inner{max-width:560px;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .nav button{border:0;background:transparent;color:var(--muted);padding:10px;border-radius:14px;font-size:12px;font-weight:750}
+    .nav button.active{background:#1a1a1d;color:var(--text)}
+    [data-view]{display:none}
+    [data-view].active{display:block}
+    .note{font-size:12px;color:var(--muted);margin:8px 2px}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">MY 75 HARD</div>
+    <button class="settings" onclick="openSettings()">⚙︎</button>
+  </div>
+
+  <section data-view="today" class="active">
+    <div class="hero">
+      <div class="eyebrow" id="dateLabel"></div>
+      <div class="dayline">
+        <div><div class="daynum" id="dayNum">DAY 1</div></div>
+        <div class="daysleft" id="daysLeft">74 giorni alla fine</div>
+      </div>
+      <div class="bar"><div id="progressBar"></div></div>
+      <div class="hero-foot"><span id="progressTxt">0% completato</span><span>75 giorni</span></div>
+    </div>
+
+    <div class="section-title">Oggi</div>
+    <div class="tasks" id="tasks"></div>
+    <button id="completeBtn" class="complete" onclick="finishDay()">Completa la giornata</button>
+    <div class="warning">
+      75 Hard è una challenge intensa. Due allenamenti al giorno e un target fisso di acqua possono non essere adatti a tutti: interrompi o modifica la challenge se avverti sintomi o hai indicazioni mediche diverse.
+    </div>
+  </section>
+
+  <section data-view="calendar">
+    <div class="section-title">I tuoi 75 giorni</div>
+    <div class="calendar" id="calendar"></div>
+    <div class="note">Verde = giornata completata. Il giorno corrente è evidenziato.</div>
+  </section>
+
+  <section data-view="progress">
+    <div class="section-title">Progressi</div>
+    <div class="stats">
+      <div class="stat"><b id="streak">0</b><span>streak</span></div>
+      <div class="stat"><b id="completed">0</b><span>giorni completati</span></div>
+      <div class="stat"><b id="pct">0%</b><span>challenge</span></div>
+    </div>
+    <div class="section-title">Regole salvate nell'app</div>
+    <div class="warning">
+      Dieta rispettata • 2 workout da almeno 45 minuti • almeno 1 workout outdoor • acqua • 10 pagine • progress photo.
+      Puoi personalizzare il target acqua nelle impostazioni.
+    </div>
+  </section>
+</div>
+
+<div class="nav">
+  <div class="nav-inner">
+    <button class="active" data-nav="today" onclick="showView('today')">Oggi</button>
+    <button data-nav="calendar" onclick="showView('calendar')">Calendario</button>
+    <button data-nav="progress" onclick="showView('progress')">Progressi</button>
+  </div>
+</div>
+
+<div class="modal" id="settingsModal">
+  <div class="sheet">
+    <h2>Impostazioni</h2>
+    <label>Data di inizio</label>
+    <input type="date" id="startDateInput">
+    <div class="row">
+      <div>
+        <label>Target acqua (L)</label>
+        <input type="number" min="0.5" max="8" step="0.1" id="waterTargetInput">
+      </div>
+      <div>
+        <label>Pagine al giorno</label>
+        <input type="number" min="1" max="100" step="1" id="pagesTargetInput">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="ghost" onclick="closeSettings()">Annulla</button>
+      <button class="save" onclick="saveSettings()">Salva</button>
+    </div>
+    <div class="actions">
+      <button class="danger" onclick="resetAll()">Azzera challenge</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TASKS = [
+  {id:'diet', title:'Dieta rispettata', sub:'Nessun cheat meal / alcol'},
+  {id:'workout1', title:'Workout 1', sub:'Almeno 45 minuti'},
+  {id:'workout2', title:'Workout outdoor', sub:'Almeno 45 minuti all’aperto'},
+  {id:'water', title:'Acqua', sub:'Target giornaliero', special:'water'},
+  {id:'reading', title:'Lettura', sub:'Libro non-fiction / self-development', special:'reading'},
+  {id:'photo', title:'Progress photo', sub:'Una foto al giorno'}
+];
+
+function isoLocal(d=new Date()){
+  const z = new Date(d.getTime()-d.getTimezoneOffset()*60000);
+  return z.toISOString().slice(0,10);
+}
+function load(){
+  const saved = JSON.parse(localStorage.getItem('hard75')||'{}');
+  const today = isoLocal();
+  return {
+    startDate: saved.startDate || today,
+    waterTarget: saved.waterTarget || 3.8,
+    pagesTarget: saved.pagesTarget || 10,
+    days: saved.days || {}
+  };
+}
+let state = load();
+function save(){localStorage.setItem('hard75',JSON.stringify(state));}
+function dayIndex(){
+  const a = new Date(state.startDate+'T12:00:00');
+  const b = new Date(isoLocal()+'T12:00:00');
+  return Math.max(1, Math.min(75, Math.floor((b-a)/86400000)+1));
+}
+function dayKey(i=dayIndex()){
+  const d = new Date(state.startDate+'T12:00:00');
+  d.setDate(d.getDate()+i-1);
+  return isoLocal(d);
+}
+function getDay(i=dayIndex()){
+  const k=dayKey(i);
+  if(!state.days[k]) state.days[k]={checks:{},water:0,pages:0,complete:false};
+  return state.days[k];
+}
+function allDone(d){
+  return !!d.checks.diet && !!d.checks.workout1 && !!d.checks.workout2 &&
+         d.water >= state.waterTarget && d.pages >= state.pagesTarget && !!d.checks.photo;
+}
+function setCheck(id){
+  const d=getDay();
+  d.checks[id]=!d.checks[id];
+  if(!allDone(d)) d.complete=false;
+  save(); render();
+}
+function bump(type,delta){
+  const d=getDay();
+  if(type==='water') d.water=Math.max(0, Math.round((d.water+delta)*10)/10);
+  if(type==='reading') d.pages=Math.max(0, d.pages+delta);
+  if(!allDone(d)) d.complete=false;
+  save(); render();
+}
+function finishDay(){
+  const d=getDay();
+  if(!allDone(d)) return;
+  d.complete=true; save(); render();
+  if(navigator.vibrate) navigator.vibrate([60,40,90]);
+}
+function renderTasks(){
+  const d=getDay();
+  document.getElementById('tasks').innerHTML=TASKS.map(t=>{
+    let done = t.special==='water' ? d.water>=state.waterTarget :
+               t.special==='reading' ? d.pages>=state.pagesTarget :
+               !!d.checks[t.id];
+    let right='';
+    if(t.special==='water'){
+      right=`<div class="stepper"><button onclick="bump('water',-0.25)">−</button><span>${d.water.toFixed(2)} / ${state.waterTarget} L</span><button onclick="bump('water',0.25)">+</button></div>`;
+    } else if(t.special==='reading'){
+      right=`<div class="stepper"><button onclick="bump('reading',-1)">−</button><span>${d.pages} / ${state.pagesTarget}</span><button onclick="bump('reading',1)">+</button></div>`;
+    } else right='<div class="mini">tocca</div>';
+    const action = t.special ? '' : `onclick="setCheck('${t.id}')"`;
+    return `<div class="task ${done?'done':''}" ${action}>
+      <div class="check"></div>
+      <div><div class="task-title">${t.title}</div><div class="task-sub">${t.sub}</div></div>
+      ${right}
+    </div>`;
+  }).join('');
+}
+function renderCalendar(){
+  const today=dayIndex();
+  let html='';
+  for(let i=1;i<=75;i++){
+    const d=state.days[dayKey(i)];
+    html+=`<div class="dot ${d?.complete?'done':''} ${i===today?'today':''} ${i>today?'future':''}">${i}</div>`;
+  }
+  document.getElementById('calendar').innerHTML=html;
+}
+function calcStreak(){
+  let s=0;
+  for(let i=dayIndex();i>=1;i--){
+    const d=state.days[dayKey(i)];
+    if(d?.complete) s++; else if(i!==dayIndex()) break;
+  }
+  return s;
+}
+function render(){
+  const i=dayIndex(), d=getDay();
+  const date = new Date(dayKey(i)+'T12:00:00');
+  document.getElementById('dateLabel').textContent = date.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('dayNum').textContent=`DAY ${i}`;
+  document.getElementById('daysLeft').textContent=`${75-i} giorni alla fine`;
+  const pct=Math.round((i-1 + (d.complete?1:0))/75*100);
+  document.getElementById('progressBar').style.width=pct+'%';
+  document.getElementById('progressTxt').textContent=pct+'% completato';
+  renderTasks(); renderCalendar();
+  const completed=Object.values(state.days).filter(x=>x.complete).length;
+  document.getElementById('completed').textContent=completed;
+  document.getElementById('streak').textContent=calcStreak();
+  document.getElementById('pct').textContent=Math.round(completed/75*100)+'%';
+  const btn=document.getElementById('completeBtn');
+  btn.classList.toggle('ready',allDone(d));
+  btn.textContent=d.complete?'Giornata completata ✓':'Completa la giornata';
+}
+function showView(v){
+  document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===v));
+  document.querySelectorAll('[data-nav]').forEach(x=>x.classList.toggle('active',x.dataset.nav===v));
+}
+function openSettings(){
+  document.getElementById('startDateInput').value=state.startDate;
+  document.getElementById('waterTargetInput').value=state.waterTarget;
+  document.getElementById('pagesTargetInput').value=state.pagesTarget;
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('open');}
+function saveSettings(){
+  state.startDate=document.getElementById('startDateInput').value || state.startDate;
+  state.waterTarget=parseFloat(document.getElementById('waterTargetInput').value)||3.8;
+  state.pagesTarget=parseInt(document.getElementById('pagesTargetInput').value)||10;
+  save(); closeSettings(); render();
+}
+function resetAll(){
+  if(confirm('Vuoi davvero cancellare tutti i progressi e ripartire da zero?')){
+    localStorage.removeItem('hard75'); state=load(); closeSettings(); render();
+  }
+}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(()=>{}));}
+render();
+</script>
+</body>
+</html>
