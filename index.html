@@ -31,6 +31,19 @@
     .bar>div{height:100%;background:var(--accent);width:0%;border-radius:inherit;transition:.3s}
     .hero-foot{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px}
     .section-title{font-size:18px;font-weight:800;margin:24px 2px 12px}
+    .today-dashboard{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+    .dash-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:13px 10px;text-align:center}
+    .dash-card b{display:block;font-size:22px;line-height:1.1}
+    .dash-card span{display:block;font-size:10px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.06em}
+    .daily-progress{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px}
+    .daily-progress-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:9px}
+    .daily-progress-head b{font-size:14px;color:var(--text)}
+    .daily-bar{height:8px;border-radius:999px;background:#252528;overflow:hidden}
+    .daily-bar>div{height:100%;width:0;background:var(--accent);border-radius:inherit;transition:.3s}
+    .motivation{position:relative;overflow:hidden;margin-top:12px;border-radius:20px;padding:18px;background:linear-gradient(145deg,#d8ff4f,#b8e83b);color:#10110c}
+    .motivation small{display:block;font-size:10px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;opacity:.6;margin-bottom:8px}
+    .motivation p{font-size:18px;font-weight:850;line-height:1.18;margin:0;letter-spacing:-.02em}
+    .motivation::after{content:"75";position:absolute;right:-7px;bottom:-27px;font-size:88px;font-weight:950;opacity:.09;letter-spacing:-.08em}
     .tasks{display:grid;gap:10px}
     .task{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);padding:14px;border-radius:20px}
     .check{width:32px;height:32px;border-radius:10px;border:1.5px solid #43434a;background:#0e0e10;display:grid;place-items:center;font-weight:900;color:#0e0e10;cursor:pointer}
@@ -89,7 +102,23 @@
         <div class="daysleft" id="daysLeft">74 giorni alla fine</div>
       </div>
       <div class="bar"><div id="progressBar"></div></div>
-      <div class="hero-foot"><span id="progressTxt">0% completato</span><span>75 giorni</span></div>
+      <div class="hero-foot"><span id="progressTxt">0% challenge</span><span>75 giorni</span></div>
+    </div>
+
+    <div class="today-dashboard">
+      <div class="dash-card"><b id="todayCount">0/6</b><span>Oggi</span></div>
+      <div class="dash-card"><b id="homeStreak">0 🔥</b><span>Streak</span></div>
+      <div class="dash-card"><b id="homeCountdown">74</b><span>Giorni rimasti</span></div>
+    </div>
+
+    <div class="daily-progress">
+      <div class="daily-progress-head"><b>Progressi di oggi</b><span id="todayPct">0%</span></div>
+      <div class="daily-bar"><div id="todayBar"></div></div>
+    </div>
+
+    <div class="motivation">
+      <small>Daily reminder</small>
+      <p id="motivationText">Un giorno alla volta.</p>
     </div>
 
     <div class="section-title">Obiettivi di oggi</div>
@@ -97,7 +126,7 @@
     <button id="completeBtn" class="complete" onclick="finishDay()">Completa la giornata</button>
 
     <div class="info">
-      La tua versione personalizzata: 8 ore di sonno, deficit calorico, 2 L d'acqua,
+      La tua versione personalizzata: 8 ore di sonno, deficit calorico, 3 L d'acqua,
       due workout da 45 minuti e 10 pagine di lettura.
     </div>
   </section>
@@ -119,7 +148,7 @@
     <div class="info">
       💤 Sonno: 8 h<br>
       🔥 Deficit calorico<br>
-      💧 Acqua: 2 L<br>
+      💧 Acqua: 3 L<br>
       🏋🏻 Workout 1: 45 min<br>
       🏋🏻 Workout 2: 45 min<br>
       📖 Lettura: 10 pagine
@@ -151,15 +180,13 @@
 </div>
 
 <script>
-const TARGETS = { sleep: 8, water: 2, pages: 10 };
-
 const TASKS = [
-  {id:'sleep', title:'Sonno', sub:'Obiettivo: 8 ore', special:'sleep'},
+  {id:'sleep', title:'Sonno', sub:'8 ore'},
   {id:'deficit', title:'Deficit calorico', sub:'Obiettivo giornaliero rispettato'},
-  {id:'water', title:'Acqua', sub:'Obiettivo: 2 litri', special:'water'},
+  {id:'water', title:'Acqua', sub:'3 litri'},
   {id:'workout1', title:'Workout 1', sub:'45 minuti'},
   {id:'workout2', title:'Workout 2', sub:'45 minuti'},
-  {id:'reading', title:'Lettura', sub:'Obiettivo: 10 pagine', special:'reading'}
+  {id:'reading', title:'Lettura', sub:'10 pagine'}
 ];
 
 function isoLocal(d=new Date()){
@@ -189,28 +216,20 @@ function dayKey(i=dayIndex()){
 }
 function getDay(i=dayIndex()){
   const k=dayKey(i);
-  if(!state.days[k]) state.days[k]={checks:{},sleep:0,water:0,pages:0,complete:false};
+  if(!state.days[k]) state.days[k]={checks:{},complete:false};
   return state.days[k];
 }
 function allDone(d){
-  return d.sleep >= TARGETS.sleep &&
+  return !!d.checks.sleep &&
          !!d.checks.deficit &&
-         d.water >= TARGETS.water &&
+         !!d.checks.water &&
          !!d.checks.workout1 &&
          !!d.checks.workout2 &&
-         d.pages >= TARGETS.pages;
+         !!d.checks.reading;
 }
 function setCheck(id){
   const d=getDay();
   d.checks[id]=!d.checks[id];
-  if(!allDone(d)) d.complete=false;
-  save(); render();
-}
-function bump(type,delta){
-  const d=getDay();
-  if(type==='sleep') d.sleep=Math.max(0, Math.round((d.sleep+delta)*2)/2);
-  if(type==='water') d.water=Math.max(0, Math.round((d.water+delta)*100)/100);
-  if(type==='reading') d.pages=Math.max(0, d.pages+delta);
   if(!allDone(d)) d.complete=false;
   save(); render();
 }
@@ -224,31 +243,14 @@ function finishDay(){
 function renderTasks(){
   const d=getDay();
   document.getElementById('tasks').innerHTML=TASKS.map(t=>{
-    let done = t.special==='sleep' ? d.sleep>=TARGETS.sleep :
-               t.special==='water' ? d.water>=TARGETS.water :
-               t.special==='reading' ? d.pages>=TARGETS.pages :
-               !!d.checks[t.id];
-
-    let right='';
-    if(t.special==='sleep'){
-      right=`<div class="stepper"><button onclick="bump('sleep',-0.5)">−</button><span>${d.sleep.toFixed(1)} / 8 h</span><button onclick="bump('sleep',0.5)">+</button></div>`;
-    } else if(t.special==='water'){
-      right=`<div class="stepper"><button onclick="bump('water',-0.25)">−</button><span>${d.water.toFixed(2)} / 2 L</span><button onclick="bump('water',0.25)">+</button></div>`;
-    } else if(t.special==='reading'){
-      right=`<div class="stepper"><button onclick="bump('reading',-1)">−</button><span>${d.pages} / 10</span><button onclick="bump('reading',1)">+</button></div>`;
-    } else {
-      right='<div class="mini">tocca</div>';
-    }
-
-    const action = t.special ? '' : `onclick="setCheck('${t.id}')"`;
-
-    return `<div class="task ${done?'done':''}" ${action}>
+    const done = !!d.checks[t.id];
+    return `<div class="task ${done?'done':''}" onclick="setCheck('${t.id}')">
       <div class="check"></div>
       <div>
         <div class="task-title">${t.title}</div>
         <div class="task-sub">${t.sub}</div>
       </div>
-      ${right}
+      <div class="mini">tocca</div>
     </div>`;
   }).join('');
 }
@@ -270,6 +272,19 @@ function calcStreak(){
   }
   return s;
 }
+function taskDoneCount(d){
+  return TASKS.reduce((n,t)=>n+(d.checks[t.id]?1:0),0);
+}
+const MOTIVATIONS = [
+  'Un giorno alla volta.',
+  'La costanza fa la differenza.',
+  'Fai oggi ciò che hai promesso a te stessa.',
+  'Non serve essere perfetta. Serve continuare.',
+  'Ogni spunta conta.',
+  'Disciplina, poi risultati.',
+  'Il progresso nasce dalle piccole cose ripetute.',
+  'Concentrati solo su oggi.'
+];
 function render(){
   const i=dayIndex(), d=getDay();
   const date = new Date(dayKey(i)+'T12:00:00');
@@ -281,7 +296,16 @@ function render(){
   const completed=Object.values(state.days).filter(x=>x.complete).length;
   const pct=Math.round(completed/75*100);
   document.getElementById('progressBar').style.width=pct+'%';
-  document.getElementById('progressTxt').textContent=pct+'% completato';
+  document.getElementById('progressTxt').textContent=pct+'% challenge';
+
+  const todayDone=taskDoneCount(d);
+  const todayPct=Math.round(todayDone/6*100);
+  document.getElementById('todayCount').textContent=todayDone+'/6';
+  document.getElementById('todayPct').textContent=todayPct+'%';
+  document.getElementById('todayBar').style.width=todayPct+'%';
+  document.getElementById('homeStreak').textContent=calcStreak()+' 🔥';
+  document.getElementById('homeCountdown').textContent=Math.max(0,75-i);
+  document.getElementById('motivationText').textContent=MOTIVATIONS[(i-1)%MOTIVATIONS.length];
 
   renderTasks();
   renderCalendar();
