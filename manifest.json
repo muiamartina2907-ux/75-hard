@@ -1,7 +1,7 @@
 {
   "name": "My 75 Hard",
   "short_name": "75 HARD",
-  "start_url": "./index.html?v=8",
+  "start_url": "./index.html?v=9",
   "display": "standalone",
   "background_color": "#0b0b0c",
   "theme_color": "#0b0b0c",
